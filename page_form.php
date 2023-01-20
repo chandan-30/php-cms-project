@@ -1,7 +1,9 @@
+
 <?php // this page is included by new_page.php and edit_page.php ?>
 <?php if (!isset($new_page)) {$new_page = false;} ?>
 
-<p>Page name: <input type="text" name="menu_name" value="<?php echo $sel_page['menu_name']; ?>" id="menu_name" /></p>
+<p>Page name: <input type="text" name="menu_name" value="<?php 
+if(isset($sel_page)) echo $sel_page['menu_name']; ?>" id="menu_name" /></p>
 
 <p>Position: <select name="position">
 	<?php
@@ -14,20 +16,20 @@
 		}
 		for ($count=1; $count <= $page_count; $count++) {
 			echo "<option value=\"{$count}\"";
-			if ($sel_page['position'] == $count) { echo " selected"; }
+			if(isset($sel_page)) if ($sel_page['position'] == $count) { echo " selected"; }
 			echo ">{$count}</option>";
 		}
 	?>
 </select></p>
 <p>Visible: 
 	<input type="radio" name="visible" value="0"<?php 
-	if ($sel_page['visible'] == 0) { echo " checked"; } 
+	if(isset($sel_page)) if ($sel_page['visible'] == 0) { echo " checked"; } 
 	?> /> No
 	&nbsp;
 	<input type="radio" name="visible" value="1"<?php 
-	if ($sel_page['visible'] == 1) { echo " checked"; } 
+	if(isset($sel_page)) if ($sel_page['visible'] == 1) { echo " checked"; } 
 	?> /> Yes
 </p>
 <p>Content:<br />
-	<textarea name="content" rows="20" cols="80"><?php echo $sel_page['content']; ?></textarea>
+	<textarea name="content" rows="20" cols="80"><?php if(isset($sel_page)) echo $sel_page['content']; ?></textarea>
 </p>

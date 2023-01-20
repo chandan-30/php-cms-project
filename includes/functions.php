@@ -7,22 +7,28 @@
 		}
 	}
 	
-	function get_all_subjects() {
+	function get_all_subjects($public = true) {
 		global $connection;
 		$query = "SELECT * 
-				FROM subjects 
-				ORDER BY position ASC";
+				FROM subjects ";
+		if ($public) {
+			$query .= "WHERE visible = 1 ";
+		}
+		$query .= "ORDER BY position ASC";
 		$subject_set = mysqli_query( $connection,$query);
 		confirm_query($subject_set);
 		return $subject_set;
 	}
 	
-	function get_pages_for_subject($subject_id) {
+	function get_pages_for_subject($subject_id,$public = true) {
 		global $connection;
 		$query = "SELECT * 
-				FROM pages 
-				WHERE subject_id = {$subject_id} 
-				ORDER BY position ASC";
+				FROM pages ";
+		$query .= "WHERE subject_id = {$subject_id} ";
+		if ($public) {
+			$query .= "AND visible = 1 ";
+		}
+		$query .= "ORDER BY position ASC";
 		$page_set = mysqli_query( $connection,$query);
 		confirm_query($page_set);
 		return $page_set;
@@ -57,13 +63,23 @@
 		return $page;
 	}
 
+	function get_default_page($subject_id) {
+		// Get all visible pages
+		$page_set = get_pages_for_subject($subject_id, true);
+		if ($first_page = mysqli_fetch_array($page_set)) {
+			return $first_page;
+		} else {
+			return NULL;
+		}
+	}
+
 	function find_selected_page(){
 		global $sel_subject;
 		global $sel_page;
 		if (isset($_GET['subj'])) {
 			$sel_subject = get_subject_by_id($_GET['subj']);
 			
-			$sel_page = NULL;
+			$sel_page = get_default_page($sel_subject['id']);
 		} elseif (isset($_GET['page'])) {
 			$sel_subject = NULL;
 			$sel_page = get_page_by_id($_GET['page']);
@@ -73,7 +89,7 @@
 		}
 	}
 
-	function navigation($sel_subject, $sel_page){
+	function navigation($sel_subject, $sel_page, $public=false){
 		echo "<ul class=\"subjects\">";
 		$subject_set = get_all_subjects();
 		while ($subject = mysqli_fetch_array($subject_set)) {
@@ -101,5 +117,28 @@
 			header("Location: {$location}");
 			exit;
 		}
+	}
+
+	function public_navigation($sel_subject, $sel_page, $public = true) {
+		echo "<ul class=\"subjects\">";
+		$subject_set = get_all_subjects();
+		while ($subject = mysqli_fetch_array($subject_set)) {
+			echo "<li";
+			if(isset($sel_subject)) if ($subject["id"] == $sel_subject['id']) { echo " class=\"selected\""; }
+			
+			echo "><a href=\"index.php?subj=" . urlencode($subject["id"]) . 
+				"\">{$subject["menu_name"]}</a></li>";
+			$page_set = get_pages_for_subject($subject["id"]);
+			echo "<ul class=\"pages\">";
+			while ($page = mysqli_fetch_array($page_set)) {
+				echo "<li";
+				if(isset($sel_page)) if ($page["id"] == $sel_page['id']) { echo " class=\"selected\""; }
+				echo "><a href=\"index.php?page=" . urlencode($page["id"]) .
+					"\">{$page["menu_name"]}</a></li>";
+			}
+			echo "</ul>";
+		}
+
+		echo 	"</ul>";
 	}
 ?>
